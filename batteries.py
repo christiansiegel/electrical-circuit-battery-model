@@ -2,22 +2,23 @@ import math
 import numpy as np
 from abc import ABCMeta, abstractmethod
 
-class Battery:
-    __metaclass__ = ABCMeta
-    
-    @abstractmethod
-    def getCircuitParams(self, SOC): pass
-    
-    @abstractmethod
-    def getC_nominal(self): pass
 
-    @abstractmethod
-    def getU_cutoff(self): pass
+class Battery:
+  __metaclass__ = ABCMeta
     
-    def expfunc(self, SOC, p):
-      p = np.array(p)
-      p = np.pad(p, (0,10 - p.shape[0]), 'constant', constant_values=(0,0))
-      return p[0]*np.exp(-p[1]*SOC) + p[2] + p[3]*SOC - p[4]*np.power(SOC,2) + p[5]*np.power(SOC,3) + p[6]*np.power(SOC,4) + p[7]*np.power(SOC,5) + p[8]*np.power(SOC,6) + p[9]*np.power(SOC,7)
+  @abstractmethod
+  def getCircuitParams(self, SOC): pass
+    
+  @abstractmethod
+  def getC_nominal(self): pass
+
+  @abstractmethod
+  def getU_cutoff(self): pass
+    
+  def expfunc(self, SOC, p):
+    p = np.array(p)
+    p = np.pad(p, (0,10 - p.shape[0]), 'constant', constant_values=(0,0))
+    return p[0]*np.exp(-p[1]*SOC) + p[2] + p[3]*SOC - p[4]*np.power(SOC,2) + p[5]*np.power(SOC,3) + p[6]*np.power(SOC,4) + p[7]*np.power(SOC,5) + p[8]*np.power(SOC,6) + p[9]*np.power(SOC,7)
 
 
 class Alkaline(Battery):
