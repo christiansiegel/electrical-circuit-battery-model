@@ -11,6 +11,8 @@ from simulator import *
 
 
 if __name__ == "__main__":
+  # NOTE: unzip "/measurements/*.zip" and run "/measurements/filter.py" first!
+
   # experiment parameters
   step = 0.1
   R = 24.8
