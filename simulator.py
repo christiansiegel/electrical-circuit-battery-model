@@ -52,10 +52,11 @@ class Simulator:
       if t % modelstep <= step:
         U_Eq, R_S, R_TS, C_TS, R_TL, C_TL = self._model.getCircuitParams(SOC)
 
-      # get load at time t
+      # get load current at time t
       I_Batt = self._load.getCurrent(t, U_Batt)
       
-      # get load at time "t + iota" (after ohmic drop, but without transient response)
+      # minimize effect of calculating the current at time t with U_Batt at 
+      # time t-1 (and hence a potentially still too high ohmic overpotential)
       I_Batt = self._load.getCurrent(t, U_Eq - R_S * I_Batt - U_TS - U_TL) 
       
       # update transient response RC circuit
