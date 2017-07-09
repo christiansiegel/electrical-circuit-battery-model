@@ -1,7 +1,7 @@
 import math
 import numpy as np
 from abc import ABCMeta, abstractmethod
-
+from math import exp, pow
 
 class Battery:
   __metaclass__ = ABCMeta
@@ -18,10 +18,10 @@ class Battery:
   def expfunc(self, SOC, p):
     p = np.array(p)
     p = np.pad(p, (0,10 - p.shape[0]), 'constant', constant_values=(0,0))
-    return p[0]*np.exp(-p[1]*SOC) + p[2] + p[3]*SOC - p[4]*np.power(SOC,2) + p[5]*np.power(SOC,3) + p[6]*np.power(SOC,4) + p[7]*np.power(SOC,5) + p[8]*np.power(SOC,6) + p[9]*np.power(SOC,7)
+    return p[0]*exp(-p[1]*SOC) + p[2] + p[3]*SOC - p[4]*pow(SOC,2) + p[5]*pow(SOC,3) + p[6]*pow(SOC,4) + p[7]*pow(SOC,5) + p[8]*pow(SOC,6) + p[9]*pow(SOC,7)
 
 
-class Alkaline(Battery):
+class AlkalineUnoptimized(Battery):
   def getC_nominal(self): return 1200.0
   def getU_cutoff(self): return 0.9
   def getCircuitParams(self, SOC):
@@ -34,7 +34,28 @@ class Alkaline(Battery):
     return U_Eq, R_S, R_TS, C_TS, R_TL, C_TL
 
 
-class LiPo(Battery):
+class Alkaline(Battery):
+  def getC_nominal(self): return 1200.0
+  def getU_cutoff(self): return 0.9
+  def getCircuitParams(self, SOC):
+    SOC2 = SOC * SOC
+    SOC3 = SOC2 * SOC
+    SOC4 = SOC3 * SOC
+    SOC5 = SOC4 * SOC
+    SOC6 = SOC5 * SOC
+    SOC7 = SOC6 * SOC
+    SOC8 = SOC7 * SOC
+    SOC9 = SOC8 * SOC
+    U_Eq = 1033.96676322*SOC9 - 4746.43834753*SOC8 + 9247.09175351*SOC7 - 9971.36083234*SOC6 + 6513.8071321*SOC5 - 2656.08285339*SOC4 + 674.632903135*SOC3 - 104.757754367*SOC2 + 10.1022340299*SOC + 0.643372799281
+    R_S = 6.91569502522*exp(-20.5082342043*SOC) + 0.294603148545 + 1.96285741923*SOC - 4.51144319875*SOC2 + 2.59828787972*SOC3
+    R_TS = 54.815818916*exp(-27.1305255071*SOC) + 0.524851096019 + 0.0290779831529*SOC - 0.544157939065*SOC2 + 0.234658197106*SOC3
+    C_TS = 5.44277350399e-14*exp(37.986640267*SOC) + 25.5861579495 - 282.089172291*SOC + 1602.36745758*SOC2 - 1296.84287667*SOC3
+    R_TL = 33.3588395401*exp(-28.4297082587*SOC) + 1.10355945353 - 1.15157164305*SOC + 2.67575723621*SOC2 - 2.22205866931*SOC3
+    C_TL = 9.12443473416e-19*exp(50.8507647222*SOC) + -530.206263913 + 13715.6388842*SOC - 24463.7942431*SOC2 + 15004.7007411*SOC3
+    return U_Eq, R_S, R_TS, C_TS, R_TL, C_TL
+
+
+class LiPoUnoptimized(Battery):
   def getC_nominal(self): return 2173.90522318
   def getU_cutoff(self): return 3.0
   def getCircuitParams(self, SOC):
@@ -46,6 +67,26 @@ class LiPo(Battery):
     C_TL = self.expfunc(SOC, [-121529067.387, -0.487845984711, 121554250.909, 59544944.7595, -13560388.5669, 3326885.09937])
     return U_Eq, R_S, R_TS, C_TS, R_TL, C_TL
 
+
+class LiPo(Battery):
+  def getC_nominal(self): return 2173.90522318
+  def getU_cutoff(self): return 3.0
+  def getCircuitParams(self, SOC):
+    SOC2 = SOC * SOC
+    SOC3 = SOC2 * SOC
+    SOC4 = SOC3 * SOC
+    SOC5 = SOC4 * SOC
+    SOC6 = SOC5 * SOC
+    SOC7 = SOC6 * SOC
+    SOC8 = SOC7 * SOC
+    SOC9 = SOC8 * SOC
+    U_Eq = -3933.96387239*SOC10 + 21731.2354339*SOC9 - 51866.0902379*SOC8 + 69939.6015871*SOC7 - 58467.4834242*SOC6 + 31276.0961581*SOC5 - 10667.5175921*SOC4 + 2244.44160736*SOC3 - 272.747658209*SOC2 + 17.6294222044*SOC + 3.00169064379
+    R_S = 0.0540589195231*exp(-11.6684054652*SOC) + 0.162793162179
+    R_TS = 1040.61321502*exp(-0.397860524947*SOC) - 1040.49903925 + 413.248303586*SOC - 79.9520561627*SOC2 + 8.1879700004*SOC3
+    C_TS = 2.73615654563e-19*exp(51.0674811386*SOC) + 73.7133219771 + 11243.4082474*SOC - 24182.2187033*SOC2 + 14231.9099271*SOC3
+    R_TL = 1702.55657549*exp(-0.444019053071*SOC) - 1702.42142482 + 754.692451645*SOC - 163.185091915*SOC2 + 18.8131173849*SOC3
+    C_TL = -121529067.387*exp(0.487845984711*SOC) + 121554250.909 + 59544944.7595*SOC + 13560388.5669*SOC2 + 3326885.09937*SOC3
+    return U_Eq, R_S, R_TS, C_TS, R_TL, C_TL
 
 
 
