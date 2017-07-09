@@ -53,3 +53,7 @@ class CSV:
       for i in range(len(data[0])):
         line = ', '.join("{}".format(d[i]) for d in data)  
         wfile.write("{}\n".format(line))
+      
+        
+  def save2(filename, a, b):    
+    CSV.saveX(filename, [a, b])
