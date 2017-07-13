@@ -1,74 +1,101 @@
-import math
-import numpy as np
 from abc import ABCMeta, abstractmethod
 
 
 class BatteryLoad:
   __metaclass__ = ABCMeta
   
-  def __init__(self, param, T_ON = float('inf'), T_OFF = 0, **kwargs):
+  def __init__(self, param, T_ON = float('inf'), T_OFF = 0):
     assert T_ON > 0
-    
     self._param = float(param)
     self._T_ON = T_ON
     self._T_OFF = T_OFF
-    
-    self._adaptive = "U_thresh" in kwargs
-    if self._adaptive:
-      self._U_thresh = kwargs['U_thresh']
-      self._param_save = float(kwargs['param_save']) if 'param_save' in kwargs else param
-      self._T_ON_save = kwargs['T_ON_save'] if 'T_ON_save' in kwargs else T_ON
-      self._T_OFF_save = kwargs['T_OFF_save'] if 'T_OFF_save' in kwargs else T_OFF
-    
     self.reset()
-  
+
   def reset(self):
-    np.random.seed(0)
     self._next = self._T_ON
     self._discharge = True
+
+  def isDischarge(self, t, U_Batt):   
+    if t >= self._next:
+      if self._discharge: 
+        self._next += self._T_OFF
+      else: 
+        self._next += self._T_ON
+      self._discharge = not self._discharge
+    return self._discharge
+
+  @abstractmethod
+  def calcCurrent(self, U_Batt): pass 
+  
+
+class ResistorLoad(BatteryLoad):
+  def calcCurrent(self, U_Batt):
+    return U_Batt / self._param
+
+
+class ConstantCurrentLoad(BatteryLoad):
+  def calcCurrent(self, U_Batt):
+    return self._param
+ 
+   
+class ConstantPowerLoad(BatteryLoad):
+  def calcCurrent(self, U_Batt):
+    return self._param / U_Batt
+
+
+
+class AdaptiveBatteryLoad(BatteryLoad):
+  __metaclass__ = ABCMeta
+  
+  def __init__(self, U_thresh, param, T_ON, T_OFF, param_save, T_ON_save, T_OFF_save):
+    print("AdaptiveBatteryLoad")
+    self._param_orig = param
+    self._T_ON_orig = T_ON
+    self._T_OFF_orig = T_OFF
+    self._U_thresh = U_thresh
+    self._param_save = param_save
+    self._T_ON_save = T_ON_save
+    self._T_OFF_save = T_OFF_save
+    super(AdaptiveBatteryLoad,self).__init__(param, T_ON, T_OFF)
+
+  def reset(self):
+    super(AdaptiveBatteryLoad,self).reset()
+    self._param = self._param_orig
+    self._T_ON = self._T_ON_orig
+    self._T_OFF = self._T_OFF_orig
     self._saving = False
     self._t_thresh = float('inf')
     
   def t_thresh(self):
-    return self._t_thresh
-  
-  @abstractmethod
-  def calcCurrent(self, U_Batt, param): pass 
-  
-  def getCurrent(self, t, U_Batt):
-    U_Batt = float(U_Batt)
-    if self._adaptive and (not self._saving) and U_Batt < self._U_thresh:
+    return self._t_thresh    
+
+  def isDischarge(self, t, U_Batt):  
+    if (not self._saving) and (U_Batt < self._U_thresh):
       self._saving = True
+      self._param = self._param_save
+      self._T_ON = self._T_ON_save
+      self._T_OFF = self._T_OFF_save
       self._t_thresh = t
-      
+   
     if t >= self._next:
       if self._discharge: 
-        self._next += self._T_OFF if not self._saving else self._T_OFF_save
+        self._next += self._T_OFF
       else: 
-        self._next += self._T_ON if not self._saving else self._T_ON_save
+        self._next += self._T_ON
       self._discharge = not self._discharge
-      
-    if self._discharge:  
-      if self._saving:
-        return self.calcCurrent(U_Batt, self._param_save)
-      else:
-        return self.calcCurrent(U_Batt, self._param)
-    else:
-      return 0.0 
-
-class ResistorLoad(BatteryLoad):
-  def calcCurrent(self, U_Batt, param):
-    return U_Batt / param
+    return self._discharge
 
 
-class ConstantCurrentLoad(BatteryLoad):
-  def calcCurrent(self, U_Batt, param):
-    return param
+class AdaptiveResistorLoad(AdaptiveBatteryLoad):
+  def calcCurrent(self, U_Batt):
+    return U_Batt / self._param
+
+
+class AdaptiveConstantCurrentLoad(AdaptiveBatteryLoad):
+  def calcCurrent(self, U_Batt):
+    return self._param
  
    
-class ConstantPowerLoad(BatteryLoad):
-  def calcCurrent(self, U_Batt, param):
-    return P / param
-
-
-
+class AdaptiveConstantPowerLoad(AdaptiveBatteryLoad):
+  def calcCurrent(self, U_Batt):
+    return self._param / U_Batt

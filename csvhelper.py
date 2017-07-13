@@ -1,7 +1,7 @@
 import sys, math
-import numpy as np
 
 class CSV:
+  @staticmethod
   def load2(filename, step = None):
     print("loading {}".format(filename))
     A = list()
@@ -20,9 +20,10 @@ class CSV:
         
         A.append(a)
         B.append(b)
-    return np.array(A), np.array(B)
+    return A, B
 
 
+  @staticmethod
   def load3(filename, step = None):
     print("loading {}".format(filename))
     A = list()
@@ -44,9 +45,10 @@ class CSV:
         A.append(a)
         B.append(b)
         C.append(c)
-    return np.array(A), np.array(B), np.array(C)
+    return A, B, C
 
 
+  @staticmethod
   def saveX(filename, data):    
     print("saving {}".format(filename)) 
     with open(filename, "w") as wfile: 
@@ -54,6 +56,7 @@ class CSV:
         line = ', '.join("{}".format(d[i]) for d in data)  
         wfile.write("{}\n".format(line))
       
-        
+      
+  @staticmethod  
   def save2(filename, a, b):    
     CSV.saveX(filename, [a, b])

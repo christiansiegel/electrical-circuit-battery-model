@@ -1,5 +1,5 @@
 import sys, math
-import numpy as np
+
 
 # Expects time in s; return Ws
 def get_energy(t_list, U_Batt_list, R, T_ON, T_OFF = 0):
@@ -7,7 +7,7 @@ def get_energy(t_list, U_Batt_list, R, T_ON, T_OFF = 0):
 
   t_last = 0.0
   E_Batt = 0.0
-  for i in range(0, t_list.shape[0]):
+  for i in range(0, len(t_list)):
     t = t_list[i]
     U_Batt = U_Batt_list[i]
   
@@ -24,17 +24,43 @@ def get_energy(t_list, U_Batt_list, R, T_ON, T_OFF = 0):
     E_Batt_list.append(E_Batt)
     t_last = t
   
-  return np.array(E_Batt_list)
+  return E_Batt_list
+
+
+# Expects time in s; return W
+def get_power(t_list, U_Batt_list, R, T_ON, T_OFF = 0):
+  P_Batt_list = list()
+
+  t_last = 0.0
+  E_Batt = 0.0
+  for i in range(0, len(t_list)):
+    t = t_list[i]
+    U_Batt = U_Batt_list[i]
+  
+    if T_OFF == 0:
+      discharge = True
+    else:
+      t_period = t % (T_ON + T_OFF)
+      discharge = t_period <= T_ON
+  
+    if discharge:
+      P_Batt = (U_Batt * U_Batt) / R
+    
+    P_Batt_list.append(P_Batt)
+    t_last = t
+  
+  return P_Batt_list
   
 
 def mean_absolute_error(v_true, v_pred): 
-  len_pred = v_pred.shape[0]
-  len_true = v_true.shape[0]
+  len_pred = len(v_pred)
+  len_true = len(v_true)
   if len_pred < len_true:
-    v_pred = np.pad(v_pred, (0, len_true - len_pred), 'edge')
+    v_pred += [v_pred[-1]] * (len_true - len_pred) # pad with edge value
   elif len_pred > len_true:
     v_pred = v_pred[:len_true]
-  return np.mean(np.abs(v_true - v_pred))
+  diff = [abs(x-y) for x, y in zip(v_true, v_pred)]
+  return sum(diff) / float(len(diff))
   
   
 def signed_percentage_error(v_true, v_pred): 

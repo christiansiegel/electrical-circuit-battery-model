@@ -118,7 +118,7 @@ def relaxation_curve(t, a, b, c, d):
 def expfunc(SOC, p):
   p = np.array(p)
   p = np.pad(p, (0,10 - p.shape[0]), 'constant', constant_values=(0,0))
-  return p[0]*np.exp(-p[1]*SOC) + p[2] + p[3]*SOC - p[4]*np.power(SOC,2) + p[5]*np.power(SOC,3) + p[6]*np.power(SOC,4) + p[7]*np.power(SOC,5) + p[8]*np.power(SOC,6) + p[9]*np.power(SOC,7)  
+  return p[0]*np.exp(-p[1]*SOC) + p[2] + p[3]*SOC + p[4]*np.power(SOC,2) + p[5]*np.power(SOC,3) + p[6]*np.power(SOC,4) + p[7]*np.power(SOC,5) + p[8]*np.power(SOC,6) + p[9]*np.power(SOC,7)  
   
 def expfunc3(SOC, p0, p1, p2):
   return expfunc(SOC, [p0, p1, p2])
@@ -287,13 +287,52 @@ def extract_parameters(filename, t_offset, C_nominal, U_cutoff, R, T_ON, T_OFF, 
   }
 
 
+def poly_string(name, p):
+  s = '    {} ='.format(name)
+  degree = len(p) - 1
+  i = degree
+  for x in p:
+    sign = '+' if x >= 0 else '-'
+    x = abs(x)
+    if i > 0:
+      s += ' {} {}*SOC{}'.format(sign, x, i)
+    else:
+      s += ' {} {}\n'.format(sign, x)
+    i -= 1
+  return s, degree
+ 
+ 
+def exp_poly_string(name, p):
+  assert len(p) > 2
+  s = '    {} = {}*exp({}*SOC1)'.format(name, p[0], -p[1])
+  degree = len(p) - 3
+  i = 0
+  for x in p[2:]:
+    sign = '+' if x >= 0 else '-'
+    x = abs(x)
+    if i > 0:
+      s += ' {} {}*SOC{}'.format(sign, x, i)
+    else:
+      s += ' {} {}'.format(sign, x)
+    i += 1
+  return s + '\n', degree  
+
+
+def soc_string(degree):
+  s = ''
+  for i in range(degree-1):
+    s += '    SOC{} = SOC{} * SOC1\n'.format(i+2, i+1)
+  return s
+
+
 # Fit model functions to extracted parameter data.
 # The result is the string of a python function taking the SOC value and 
 # returning the current parameter values.
 def fit_model_functions(U_start, U_cutoff, params, poly, orders, x0, plot = True):
   xdata_hires = np.linspace(1, 0, num=1000)
 
-  s = "  def getCircuitParams(self, SOC):\n"
+  s = ""
+  max_degree = 0
   
   ##############################################################################
   name = "U_Eq" 
@@ -309,11 +348,14 @@ def fit_model_functions(U_start, U_cutoff, params, poly, orders, x0, plot = True
   if poly[name]:
     p = np.polyfit(xdata, ydata, orders[name])
     ploty = np.poly1d(p)(xdata_hires) 
-    s += '    {} = np.poly1d([{}])(SOC)\n'.format(name, ', '.join(str(x) for x in p)) 
+    tmp, degree = poly_string(name, p)
   else:
     p, _ = optimization.curve_fit(getExpfunc(orders[name]), xdata, ydata, maxfev=100000, p0=x0[name])
     ploty = expfunc(xdata_hires, p)
-    s += '    {} = self.expfunc(SOC, [{}])\n'.format(name, ', '.join(str(x) for x in p)) 
+    tmp, degree = exp_poly_string(name, p)
+    
+  s += tmp
+  if degree > max_degree: max_degree = degree
   
   if plot: 
     pylab.plot(xdata, ydata, 'b.')
@@ -334,11 +376,15 @@ def fit_model_functions(U_start, U_cutoff, params, poly, orders, x0, plot = True
   if poly[name]:
     p = np.polyfit(xdata, ydata, orders[name])
     ploty = np.poly1d(p)(xdata_hires) 
-    s += '    {} = np.poly1d([{}])(SOC)\n'.format(name, ', '.join(str(x) for x in p)) 
+    tmp, degree = poly_string(name, p) 
   else:
     p, _ = optimization.curve_fit(getExpfunc(orders[name]), xdata, ydata, maxfev=100000, p0=x0[name])
     ploty = expfunc(xdata_hires, p)
-    s += '    {} = self.expfunc(SOC, [{}])\n'.format(name, ', '.join(str(x) for x in p)) 
+    tmp, degree = exp_poly_string(name, p)
+    
+  s += tmp
+  if degree > max_degree: max_degree = degree
+    
   pylab.plot(xdata, ydata, 'b.')
   pylab.plot(xdata_hires, ploty, 'r')
   if plot: pylab.show()
@@ -354,11 +400,14 @@ def fit_model_functions(U_start, U_cutoff, params, poly, orders, x0, plot = True
   if poly[name]:
     p = np.polyfit(xdata, ydata, orders[name])
     ploty = np.poly1d(p)(xdata_hires) 
-    s += '    {} = np.poly1d([{}])(SOC)\n'.format(name, ', '.join(str(x) for x in p)) 
+    tmp, degree = poly_string(name, p)
   else:
     p, _ = optimization.curve_fit(getExpfunc(orders[name]), xdata, ydata, maxfev=100000, p0=x0[name])
     ploty = expfunc(xdata_hires, p)
-    s += '    {} = self.expfunc(SOC, [{}])\n'.format(name, ', '.join(str(x) for x in p)) 
+    tmp, degree = exp_poly_string(name, p)
+  
+  s += tmp
+  if degree > max_degree: max_degree = degree
   
   if plot: 
     pylab.plot(xdata, ydata, 'b.')
@@ -377,11 +426,14 @@ def fit_model_functions(U_start, U_cutoff, params, poly, orders, x0, plot = True
   if poly[name]:
     p = np.polyfit(xdata, ydata, orders[name])
     ploty = np.poly1d(p)(xdata_hires) 
-    s += '    {} = np.poly1d([{}])(SOC)\n'.format(name, ', '.join(str(x) for x in p)) 
+    tmp, degree = poly_string(name, p)
   else:
     p, _ = optimization.curve_fit(getExpfunc(orders[name]), xdata, ydata, maxfev=100000, p0=x0[name])
     ploty = expfunc(xdata_hires, p)
-    s += '    {} = self.expfunc(SOC, [{}])\n'.format(name, ', '.join(str(x) for x in p)) 
+    tmp, degree = exp_poly_string(name, p)
+  
+  s += tmp
+  if degree > max_degree: max_degree = degree
   
   if plot: 
     pylab.plot(xdata, ydata, 'b.')
@@ -400,11 +452,14 @@ def fit_model_functions(U_start, U_cutoff, params, poly, orders, x0, plot = True
   if poly[name]:
     p = np.polyfit(xdata, ydata, orders[name])
     ploty = np.poly1d(p)(xdata_hires) 
-    s += '    {} = np.poly1d([{}])(SOC)\n'.format(name, ', '.join(str(x) for x in p)) 
+    tmp, degree = poly_string(name, p)
   else:
     p, _ = optimization.curve_fit(getExpfunc(orders[name]), xdata, ydata, maxfev=100000, p0=x0[name])
     ploty = expfunc(xdata_hires, p)
-    s += '    {} = self.expfunc(SOC, [{}])\n'.format(name, ', '.join(str(x) for x in p)) 
+    tmp, degree = exp_poly_string(name, p)
+  
+  s += tmp
+  if degree > max_degree: max_degree = degree
   
   if plot: 
     pylab.plot(xdata, ydata, 'b.')
@@ -423,11 +478,14 @@ def fit_model_functions(U_start, U_cutoff, params, poly, orders, x0, plot = True
   if poly[name]:
     p = np.polyfit(xdata, ydata, orders[name])
     ploty = np.poly1d(p)(xdata_hires) 
-    s += '    {} = np.poly1d([{}])(SOC)\n'.format(name, ', '.join(str(x) for x in p)) 
+    tmp, degree = poly_string(name, p)
   else:
     p, _ = optimization.curve_fit(getExpfunc(orders[name]), xdata, ydata, maxfev=100000, p0=x0[name])
     ploty = expfunc(xdata_hires, p)
-    s += '    {} = self.expfunc(SOC, [{}])\n'.format(name, ', '.join(str(x) for x in p)) 
+    tmp, degree = exp_poly_string(name, p)
+ 
+  s += tmp
+  if degree > max_degree: max_degree = degree
  
   if plot: 
     pylab.plot(xdata, ydata, 'b.')
@@ -438,6 +496,8 @@ def fit_model_functions(U_start, U_cutoff, params, poly, orders, x0, plot = True
     save_measurement_array("plots/{}-points.csv".format(name), xdata * 100, ydata)
     save_measurement_array("plots/{}-func.csv".format(name), xdata_hires * 100, ploty)
   
+  s = soc_string(max_degree) + s
+  s = "  def getCircuitParams(self, SOC1):\n" + s
   return s + "    return U_Eq, R_S, R_TS, C_TS, R_TL, C_TL"
   
 

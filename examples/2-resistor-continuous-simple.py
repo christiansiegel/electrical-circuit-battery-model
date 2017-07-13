@@ -1,8 +1,6 @@
 #!/usr/bin/python3
 
 import sys, math
-import matplotlib.pyplot as plt
-import numpy as np
 
 sys.path.append("../")
 from simulator import *

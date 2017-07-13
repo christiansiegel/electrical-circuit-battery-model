@@ -1,5 +1,4 @@
-import sys, math
-import numpy as np
+import sys
 
 from batteries import *
 from loads import *
@@ -17,9 +16,10 @@ class Simulator:
   def _printSOC(self, SOC):
     if abs(self._lastPrintedSOC - SOC) >= 0.01:
       self._lastPrintedSOC = SOC
-      print("SOC = {}%   \r".format(int(SOC * 100)), end="")
+      sys.stdout.write("SOC = {}%   \r".format(int(SOC * 100)))
+      sys.stdout.flush()
   
-  
+
   def run(self, step = 1.0, **kwargs): 
     simple = kwargs['simple'] if 'simple' in kwargs else False
     arraystep = kwargs['astep'] if 'astep' in kwargs else step
@@ -45,6 +45,8 @@ class Simulator:
     U_TS = U_TL = 0
     SOC = 1
     
+    cutoff = self._model.getU_cutoff()
+    
     self._lastPrintedSOC = 0
     while True:
       # update model parameters
@@ -52,12 +54,15 @@ class Simulator:
       if t % modelstep <= step:
         U_Eq, R_S, R_TS, C_TS, R_TL, C_TL = self._model.getCircuitParams(SOC)
 
-      # get load current at time t
-      I_Batt = self._load.getCurrent(t, U_Batt)
+      if self._load.isDischarge(t, U_Batt):
+        # get load current at time t
+        I_Batt = self._load.calcCurrent(U_Batt)
       
-      # minimize effect of calculating the current at time t with U_Batt at 
-      # time t-1 (and hence a potentially still too high ohmic overpotential)
-      I_Batt = self._load.getCurrent(t, U_Eq - R_S * I_Batt - U_TS - U_TL) 
+        # minimize effect of calculating the current at time t with U_Batt at 
+        # time t-1 (and hence a potentially still too high ohmic overpotential)
+        I_Batt = self._load.calcCurrent(U_Eq - R_S * I_Batt - U_TS - U_TL) 
+      else:
+        I_Batt = 0.0
       
       # update transient response RC circuit
       I_RTS = U_TS / R_TS
@@ -91,7 +96,7 @@ class Simulator:
         I_Batt_list.append(I_Batt)
 
       # stop criteria
-      if U_Batt < self._model.getU_cutoff(): 
+      if U_Batt < cutoff: 
         print("\nU_Batt < U_cutoff\n")
         break
     
@@ -99,8 +104,6 @@ class Simulator:
       t += step 
     
     if not simple:   
-      return np.array(t_list), np.array(E_Batt_list), \
-           np.array(U_Batt_list), np.array(I_Batt_list)
+      return t_list, E_Batt_list, U_Batt_list, I_Batt_list
     else:
       return t, E_Batt 
-      

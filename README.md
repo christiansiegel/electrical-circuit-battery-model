@@ -5,10 +5,15 @@ Discrete python implementation of the *electrical circuit battery model* inspire
 
 Requirements
 ------------
-* Python 3
-* NumPy
-* SciPy
-* Matplotlib
+* Python
+* NumPy¹
+* SciPy¹
+* Matplotlib¹²
+
+¹ For model extraction
+² For plotting example results
+
+The simulation code is designed to run with PyPy for faster execution.
 
 Download
 --------
