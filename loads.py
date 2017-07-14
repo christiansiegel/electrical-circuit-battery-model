@@ -7,7 +7,7 @@ class BatteryLoad:
   def __init__(self, param, T_ON = float('inf'), T_OFF = 0):
     assert T_ON > 0
     self._param = float(param)
-    self._T_ON = T_ON
+    self._T_ON = T_ON if T_OFF > 0 else float('inf')
     self._T_OFF = T_OFF
     self.reset()
 
@@ -50,11 +50,11 @@ class AdaptiveBatteryLoad(BatteryLoad):
   def __init__(self, U_thresh, param, T_ON, T_OFF, param_save, T_ON_save, T_OFF_save):
     print("AdaptiveBatteryLoad")
     self._param_orig = param
-    self._T_ON_orig = T_ON
+    self._T_ON_orig = T_ON if T_OFF > 0 else float('inf')
     self._T_OFF_orig = T_OFF
     self._U_thresh = U_thresh
     self._param_save = param_save
-    self._T_ON_save = T_ON_save
+    self._T_ON_save = T_ON_save if T_OFF_save > 0 else float('inf')
     self._T_OFF_save = T_OFF_save
     super(AdaptiveBatteryLoad,self).__init__(param, T_ON, T_OFF)
 
