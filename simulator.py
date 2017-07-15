@@ -54,7 +54,7 @@ class Simulator:
       if t % modelstep <= step:
         U_Eq, R_S, R_TS, C_TS, R_TL, C_TL = self._model.getCircuitParams(SOC)
 
-      if self._load.isDischarge(t, U_Batt):
+      if self._load.isDischarge(t, U_Batt, U_Eq, SOC):
         # get load current at time t
         I_Batt = self._load.calcCurrent(U_Batt)
       

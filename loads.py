@@ -15,7 +15,7 @@ class BatteryLoad:
     self._next = self._T_ON
     self._discharge = True
 
-  def isDischarge(self, t, U_Batt):   
+  def isDischarge(self, t, U_Batt, U_Eq, SOC):   
     if t >= self._next:
       if self._discharge: 
         self._next += self._T_OFF
@@ -44,11 +44,11 @@ class ConstantPowerLoad(BatteryLoad):
 
 
 
+
 class AdaptiveBatteryLoad(BatteryLoad):
   __metaclass__ = ABCMeta
   
   def __init__(self, U_thresh, param, T_ON, T_OFF, param_save, T_ON_save, T_OFF_save):
-    print("AdaptiveBatteryLoad")
     self._param_orig = param
     self._T_ON_orig = T_ON if T_OFF > 0 else float('inf')
     self._T_OFF_orig = T_OFF
@@ -69,7 +69,7 @@ class AdaptiveBatteryLoad(BatteryLoad):
   def t_thresh(self):
     return self._t_thresh    
 
-  def isDischarge(self, t, U_Batt):  
+  def isDischarge(self, t, U_Batt, U_Eq, SOC):  
     if (not self._saving) and (U_Batt < self._U_thresh):
       self._saving = True
       self._param = self._param_save
