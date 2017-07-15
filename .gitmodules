@@ -1,3 +1,4 @@
 [submodule "measurements"]
 	path = measurements
 	url = https://github.com/christiansiegel/battery-discharge-measurements.git
+	branch = v1.0
