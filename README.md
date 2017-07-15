@@ -34,13 +34,13 @@ git clone --recursive https://github.com/christiansiegel/electrical-circuit-batt
 cd electrical-circuit-battery-model
 ```
 
-Unzip [measurement data](https://github.com/christiansiegel/battery-discharge-measurements/) (optional)
+Unzip [measurement data](https://github.com/christiansiegel/battery-discharge-measurements/)
 ```
 cd measurements
 unzip '*.zip'
 ```
 
-Smooth [measurement data](https://github.com/christiansiegel/battery-discharge-measurements/) (optional)
+Smooth [measurement data](https://github.com/christiansiegel/battery-discharge-measurements/)
 ```
 python3 filter.py
 ```
