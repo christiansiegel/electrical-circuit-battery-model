@@ -34,13 +34,13 @@ git clone --recursive https://github.com/christiansiegel/electrical-circuit-batt
 cd electrical-circuit-battery-model
 ```
 
-Unzip [measurement data](measurements) (optional)
+Unzip [measurement data](https://github.com/christiansiegel/battery-discharge-measurements/) (optional)
 ```
 cd measurements
 unzip '*.zip'
 ```
 
-Smooth [measurement data](measurements) (optional)
+Smooth [measurement data](https://github.com/christiansiegel/battery-discharge-measurements/) (optional)
 ```
 python3 filter.py
 ```
@@ -49,7 +49,7 @@ Files
 -----
 
 ### Model Extraction
-The model can be extracted from [measurement data](measurements) with [extract.py](extract.py). The resulting battery model class can be pasted in [batteries.py](batteries.py) (already done).
+The model can be extracted from [measurement data](https://github.com/christiansiegel/battery-discharge-measurements/) with [extract.py](extract.py). The resulting battery model class can be pasted in [batteries.py](batteries.py) (already done).
 
 ### Simulation
 The discrete simulator is implemented in [simulator.py](simulator.py). The battery models are included from [batteries.py](batteries.py). The different discharge loads are found in [loads.py](loads.py).
@@ -59,6 +59,6 @@ For specific examples on how to use the simulator see [examples](examples).
 You can also use the simulator in a [Jupyter](http://jupyter.org/) notebook. For an example notebook see [jupyter-examples.ipynb](examples/jupyter-examples.ipynb).
 
 ### Measurement Comparison
-The [measurement data](measurements) smoothed with [filter.py](measurements/filter.py) can be loaded using the CSV helper class in [csvhelper.py](csvhelper.py). Functions to calculate the used energy or calculate errors are found in [measurement.py](measurement.py).
+The [measurement data](https://github.com/christiansiegel/battery-discharge-measurements/) smoothed with [filter.py](https://github.com/christiansiegel/battery-discharge-measurements/blob/master/filter.py) can be loaded using the CSV helper class in [csvhelper.py](csvhelper.py). Functions to calculate the used energy or calculate errors are found in [measurement.py](measurement.py).
 
 For guidance see [5-measurement-compare.py](examples/5-measurement-compare.py) in particular.
