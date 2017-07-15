@@ -18,6 +18,10 @@ class Simulator:
       self._lastPrintedSOC = SOC
       sys.stdout.write("SOC = {}%   \r".format(int(SOC * 100)))
       sys.stdout.flush()
+
+
+  def _printStopReason(self, s):
+    print("\n{}\n".format(s))
   
 
   def run(self, step = 1.0, **kwargs): 
@@ -97,7 +101,7 @@ class Simulator:
 
       # stop criteria
       if U_Batt < cutoff: 
-        print("\nU_Batt < U_cutoff\n")
+        self._printStopReason("U_Batt < U_cutoff")
         break
     
       # update time
