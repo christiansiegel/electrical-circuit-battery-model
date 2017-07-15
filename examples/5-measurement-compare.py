@@ -29,13 +29,13 @@ if __name__ == "__main__":
   
   # plot curves
   plt.xlabel('t [h]')
-  plt.ylabel('U_Batt [V]')
+  plt.ylabel('$U_{Batt}$ [V]')
   plt.plot([x / 3600.0 for x in t], U_Batt, 'b-')
   plt.plot([x / 3600.0 for x in t_real], U_Batt_real, 'r-')
   plt.show()
   
-  plt.xlabel('E_Batt [Wh]')
-  plt.ylabel('U_Batt [V]')
+  plt.xlabel('$E_{Batt}$ [Wh]')
+  plt.ylabel('$U_{Batt}$ [V]')
   plt.plot([x / 3600.0 for x in E_Batt], U_Batt, 'b-')
   plt.plot([x / 3600.0 for x in E_Batt_real], U_Batt_real, 'r-')
   plt.show()

@@ -12,7 +12,7 @@ if __name__ == "__main__":
   # 6 Ohm load
 
   plt.xlabel('t [h]')
-  plt.ylabel('U_Batt [V]')
+  plt.ylabel('$U_{Batt}$ [V]')
 
   # not adaptive
   #  -> always: T_ON = T_OFF = 50s
